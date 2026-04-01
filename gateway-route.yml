@@ -1,0 +1,12 @@
+# Add this block to your Spring Cloud Gateway's application.yml configuration
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: examen-service
+          uri: lb://examen-service
+          predicates:
+            - Path=/api/examens/**
+          # Optional: add a filter to forward token if using token relay
+          # filters:
+          #   - TokenRelay=

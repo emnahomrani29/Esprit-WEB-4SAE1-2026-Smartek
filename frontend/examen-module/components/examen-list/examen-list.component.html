@@ -1,0 +1,73 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestion des Examens</h2>
+    <a routerLink="/examens/new" class="btn btn-primary">
+      <i class="bi bi-plus-circle"></i> Nouvel Examen
+    </a>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <input type="text" 
+                 class="form-control" 
+                 placeholder="Filtrer par matière..." 
+                 [(ngModel)]="searchTerm" 
+                 (input)="filterByMatiere()">
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Titre</th>
+              <th>Matière</th>
+              <th>Date</th>
+              <th>Salle</th>
+              <th>Type</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let examen of filteredExamens">
+              <td>{{ examen.titre }}</td>
+              <td>{{ examen.matiere }}</td>
+              <td>{{ examen.dateExamen | date:'short' }}</td>
+              <td>{{ examen.salle }}</td>
+              <td>
+                <span class="badge bg-secondary">{{ examen.typeExamen }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-success': examen.statut === 'TERMINE',
+                  'bg-warning': examen.statut === 'PLANIFIE',
+                  'bg-primary': examen.statut === 'EN_COURS',
+                  'bg-danger': examen.statut === 'ANNULE'
+                }">{{ examen.statut }}</span>
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-outline-info" (click)="viewDetails(examen.id!)" title="Détails">
+                    👁️
+                  </button>
+                  <button class="btn btn-outline-warning" (click)="editExamen(examen.id!)" title="Modifier">
+                    ✏️
+                  </button>
+                  <button class="btn btn-outline-danger" (click)="deleteExamen(examen.id!)" title="Supprimer">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="filteredExamens.length === 0">
+              <td colspan="7" class="text-center py-4 text-muted">Aucu examen trouvé.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

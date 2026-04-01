@@ -1,0 +1,69 @@
+<div class="container mt-4">
+  <button class="btn btn-outline-secondary mb-3" (click)="goBack()">
+    <i class="bi bi-arrow-left"></i> Retour à la liste
+  </button>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div *ngIf="examen" class="card shadow-sm">
+    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+      <h3 class="mb-0">{{ examen.titre }}</h3>
+      <span class="badge bg-light text-dark fs-6">{{ examen.statut }}</span>
+    </div>
+    
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <h6 class="text-muted">Matière</h6>
+          <p class="fs-5">{{ examen.matiere }}</p>
+        </div>
+        <div class="col-md-6 mb-3">
+          <h6 class="text-muted">Date et Heure</h6>
+          <p class="fs-5">{{ examen.dateExamen | date:'longDate' }} à {{ examen.dateExamen | date:'shortTime' }}</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <h6 class="text-muted">Durée</h6>
+          <p class="fs-5">{{ examen.duree }} minutes</p>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h6 class="text-muted">Salle</h6>
+          <p class="fs-5">{{ examen.salle }}</p>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h6 class="text-muted">Coefficient</h6>
+          <p class="fs-5">{{ examen.coefficient }}</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12 mb-3">
+          <h6 class="text-muted">Type d'examen</h6>
+          <p class="fs-5 mb-0">{{ examen.typeExamen }}</p>
+        </div>
+      </div>
+
+      <hr>
+
+      <div class="d-flex justify-content-between align-items-center">
+        <h5>Modifier le statut (Actions Rapides)</h5>
+        <div class="btn-group">
+          <button class="btn btn-outline-warning" 
+                  [disabled]="examen.statut === 'PLANIFIE'"
+                  (click)="changeStatus('PLANIFIE')">Planifié</button>
+          <button class="btn btn-outline-primary" 
+                  [disabled]="examen.statut === 'EN_COURS'"
+                  (click)="changeStatus('EN_COURS')">En Cours</button>
+          <button class="btn btn-outline-success" 
+                  [disabled]="examen.statut === 'TERMINE'"
+                  (click)="changeStatus('TERMINE')">Terminé</button>
+          <button class="btn btn-outline-danger" 
+                  [disabled]="examen.statut === 'ANNULE'"
+                  (click)="changeStatus('ANNULE')">Annulé</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

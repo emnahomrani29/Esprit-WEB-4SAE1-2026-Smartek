@@ -1,0 +1,88 @@
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">{{ isEditMode ? 'Modifier' : 'Créer' }} un Examen</h4>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="examenForm" (ngSubmit)="onSubmit()">
+            
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="titre" class="form-label">Titre</label>
+                <input type="text" id="titre" formControlName="titre" class="form-control" [ngClass]="{ 'is-invalid': submitted && f['titre'].errors }">
+                <div *ngIf="submitted && f['titre'].errors" class="invalid-feedback">
+                    <div *ngIf="f['titre'].errors['required']">Titre requis.</div>
+                    <div *ngIf="f['titre'].errors['minlength']">Au moins 3 caractères.</div>
+                </div>
+              </div>
+              
+              <div class="col-md-6">
+                <label for="matiere" class="form-label">Matière</label>
+                <input type="text" id="matiere" formControlName="matiere" class="form-control" [ngClass]="{ 'is-invalid': submitted && f['matiere'].errors }">
+                <div *ngIf="submitted && f['matiere'].errors" class="invalid-feedback">Matière requise.</div>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="dateExamen" class="form-label">Date de l'examen</label>
+                <input type="datetime-local" id="dateExamen" formControlName="dateExamen" class="form-control" [ngClass]="{ 'is-invalid': submitted && f['dateExamen'].errors }">
+                <div *ngIf="submitted && f['dateExamen'].errors" class="invalid-feedback">Date requise.</div>
+              </div>
+              
+              <div class="col-md-6">
+                <label for="duree" class="form-label">Durée (minutes)</label>
+                <input type="number" id="duree" formControlName="duree" class="form-control" [ngClass]="{ 'is-invalid': submitted && f['duree'].errors }">
+                <div *ngIf="submitted && f['duree'].errors" class="invalid-feedback">
+                  <div *ngIf="f['duree'].errors['required']">Durée requise.</div>
+                  <div *ngIf="f['duree'].errors['min']">Minimum 15 minutes.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="salle" class="form-label">Salle</label>
+                <input type="text" id="salle" formControlName="salle" class="form-control" [ngClass]="{ 'is-invalid': submitted && f['salle'].errors }">
+                <div *ngIf="submitted && f['salle'].errors" class="invalid-feedback">Salle requise.</div>
+              </div>
+              
+              <div class="col-md-6">
+                <label for="coefficient" class="form-label">Coefficient</label>
+                <input type="number" step="0.5" id="coefficient" formControlName="coefficient" class="form-control" [ngClass]="{ 'is-invalid': submitted && f['coefficient'].errors }">
+                <div *ngIf="submitted && f['coefficient'].errors" class="invalid-feedback">Coefficient requis.</div>
+              </div>
+            </div>
+
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <label for="typeExamen" class="form-label">Type d'examen</label>
+                <select id="typeExamen" formControlName="typeExamen" class="form-select" [ngClass]="{ 'is-invalid': submitted && f['typeExamen'].errors }">
+                  <option *ngFor="let t of typesExamen" [value]="t">{{ t }}</option>
+                </select>
+                <div *ngIf="submitted && f['typeExamen'].errors" class="invalid-feedback">Type requis.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="statut" class="form-label">Statut</label>
+                <select id="statut" formControlName="statut" class="form-select" [ngClass]="{ 'is-invalid': submitted && f['statut'].errors }">
+                  <option *ngFor="let s of statutsExamen" [value]="s">{{ s }}</option>
+                </select>
+                <div *ngIf="submitted && f['statut'].errors" class="invalid-feedback">Statut requis.</div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-secondary" (click)="cancel()">Annuler</button>
+              <button type="submit" class="btn btn-primary" [disabled]="examenForm.invalid && submitted">
+                {{ isEditMode ? 'Enregistrer les modifications' : 'Créer l\\'examen' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

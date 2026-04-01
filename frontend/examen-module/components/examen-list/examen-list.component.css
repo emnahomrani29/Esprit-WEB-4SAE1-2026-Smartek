@@ -1,0 +1,8 @@
+/* Add custom styles here */
+.table th {
+  font-weight: 600;
+}
+.badge {
+  font-size: 0.85em;
+  padding: 0.4em 0.6em;
+}
