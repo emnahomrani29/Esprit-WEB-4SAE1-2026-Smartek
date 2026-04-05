@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: event-service
+  
+  datasource:
+    url: jdbc:h2:mem:event_db
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/smartek-realm2
+          jwk-set-uri: http://localhost:8080/realms/smartek-realm2/protocol/openid-connect/certs
+
+server:
+  port: 8084
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+keycloak:
+  realm: smartek-realm2
+  auth-server-url: http://localhost:8080
+  resource: event-service
+  
+logging:
+  level:
+    com.smartek.event: DEBUG
+    org.springframework.security: DEBUG

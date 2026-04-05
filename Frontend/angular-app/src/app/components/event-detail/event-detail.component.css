@@ -1,0 +1,49 @@
+.event-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.info-row i {
+  font-size: 1.2rem;
+  width: 25px;
+  margin-top: 0.2rem;
+}
+
+.info-row div {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-row strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.card-title {
+  color: #333;
+  font-weight: 600;
+}
+
+.list-group-item {
+  border-left: none;
+  border-right: none;
+}
+
+.list-group-item:first-child {
+  border-top: none;
+}
+
+.list-group-item:last-child {
+  border-bottom: none;
+}

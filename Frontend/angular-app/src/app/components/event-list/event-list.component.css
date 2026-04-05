@@ -1,0 +1,53 @@
+.hover-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.event-details {
+  font-size: 0.9rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.detail-item i {
+  width: 20px;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.badge-info {
+  background-color: #17a2b8;
+}
+
+.badge-success {
+  background-color: #28a745;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+}
+
+.badge-danger {
+  background-color: #dc3545;
+}
+
+.badge-warning {
+  background-color: #ffc107;
+  color: #000;
+}
