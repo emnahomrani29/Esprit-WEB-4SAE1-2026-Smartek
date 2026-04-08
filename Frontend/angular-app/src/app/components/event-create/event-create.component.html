@@ -1,0 +1,145 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h3 class="mb-0">Créer un Événement</h3>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="onSubmit()" #eventForm="ngForm">
+            <div class="mb-3">
+              <label for="title" class="form-label">Titre *</label>
+              <input
+                type="text"
+                class="form-control"
+                id="title"
+                name="title"
+                [(ngModel)]="event.title"
+                required
+                #title="ngModel"
+              />
+              <div *ngIf="title.invalid && title.touched" class="text-danger">
+                Le titre est requis
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea
+                class="form-control"
+                id="description"
+                name="description"
+                rows="4"
+                [(ngModel)]="event.description"
+              ></textarea>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="startDate" class="form-label">Date de début *</label>
+                <input
+                  type="datetime-local"
+                  class="form-control"
+                  id="startDate"
+                  name="startDate"
+                  [(ngModel)]="event.startDate"
+                  required
+                  #startDate="ngModel"
+                />
+                <div *ngIf="startDate.invalid && startDate.touched" class="text-danger">
+                  La date de début est requise
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="endDate" class="form-label">Date de fin *</label>
+                <input
+                  type="datetime-local"
+                  class="form-control"
+                  id="endDate"
+                  name="endDate"
+                  [(ngModel)]="event.endDate"
+                  required
+                  #endDate="ngModel"
+                />
+                <div *ngIf="endDate.invalid && endDate.touched" class="text-danger">
+                  La date de fin est requise
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="location" class="form-label">Lieu *</label>
+              <input
+                type="text"
+                class="form-control"
+                id="location"
+                name="location"
+                [(ngModel)]="event.location"
+                required
+                #location="ngModel"
+                placeholder="En ligne, Salle 101, etc."
+              />
+              <div *ngIf="location.invalid && location.touched" class="text-danger">
+                Le lieu est requis
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="eventType" class="form-label">Type d'événement *</label>
+                <select
+                  class="form-select"
+                  id="eventType"
+                  name="eventType"
+                  [(ngModel)]="event.eventType"
+                  required
+                >
+                  <option *ngFor="let type of eventTypes" [value]="type">
+                    {{ getEventTypeLabel(type) }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="maxParticipants" class="form-label">Nombre maximum de participants</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="maxParticipants"
+                  name="maxParticipants"
+                  [(ngModel)]="event.maxParticipants"
+                  min="1"
+                  placeholder="Illimité si vide"
+                />
+              </div>
+            </div>
+
+            <div *ngIf="error" class="alert alert-danger">
+              {{ error }}
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="cancel()"
+                [disabled]="loading"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="!eventForm.form.valid || loading"
+              >
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                {{ loading ? 'Création...' : 'Créer l\'événement' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

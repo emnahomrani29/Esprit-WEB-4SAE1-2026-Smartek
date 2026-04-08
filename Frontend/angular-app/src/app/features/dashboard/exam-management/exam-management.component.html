@@ -1,0 +1,185 @@
+<div class="p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Gestion des Examens</h1>
+    <button *ngIf="!showResultats" (click)="openCreateModal()"
+      style="background-color: #3b82f6; color: white; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px;">
+      + Nouvel examen
+    </button>
+  </div>
+
+  <!-- ── LISTE ── -->
+  <div *ngIf="!showResultats">
+
+    <div *ngIf="loading" class="text-center py-10 text-gray-400">Chargement...</div>
+
+    <div *ngIf="!loading && examens.length === 0"
+      class="text-center py-16 bg-white rounded-xl shadow text-gray-400">
+      <p class="text-5xl mb-3">📝</p>
+      Aucun examen créé
+    </div>
+
+    <div class="overflow-x-auto bg-white rounded-xl shadow">
+      <table *ngIf="examens.length > 0" class="w-full text-sm text-left">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+          <tr>
+            <th class="px-4 py-3">Titre</th>
+            <th class="px-4 py-3">Cours lié</th>
+            <th class="px-4 py-3">Durée</th>
+            <th class="px-4 py-3">Score min</th>
+            <th class="px-4 py-3">Questions</th>
+            <th class="px-4 py-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let e of examens" class="border-t hover:bg-gray-50">
+            <td class="px-4 py-3 font-medium">{{ e.titre }}</td>
+            <td class="px-4 py-3 text-gray-500">{{ getCourTitre(e.courId) }}</td>
+            <td class="px-4 py-3">{{ e.dureeMinutes }} min</td>
+            <td class="px-4 py-3">{{ e.scoreMinimal }}%</td>
+            <td class="px-4 py-3">{{ e.questions.length }}</td>
+            <td class="px-4 py-3 flex gap-2">
+              <button (click)="voirResultats(e)" class="text-blue-600 hover:underline text-xs">Résultats</button>
+              <button (click)="deleteExamen(e.id)" class="text-red-500 hover:underline text-xs">Supprimer</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── RÉSULTATS ── -->
+  <div *ngIf="showResultats">
+    <div class="flex items-center gap-3 mb-6">
+      <button (click)="showResultats = false" class="text-gray-400 hover:text-gray-600 text-xl">←</button>
+      <h1 class="text-2xl font-bold text-gray-800">Résultats — {{ examenSelectionne?.titre }}</h1>
+    </div>
+
+    <div *ngIf="tentatives.length === 0"
+      class="text-center py-16 bg-white rounded-xl shadow text-gray-400">
+      Aucune tentative pour cet examen
+    </div>
+
+    <div class="overflow-x-auto bg-white rounded-xl shadow">
+      <table *ngIf="tentatives.length > 0" class="w-full text-sm text-left">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+          <tr>
+            <th class="px-4 py-3">Apprenant</th>
+            <th class="px-4 py-3">Score</th>
+            <th class="px-4 py-3">Résultat</th>
+            <th class="px-4 py-3">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of tentatives" class="border-t hover:bg-gray-50">
+            <td class="px-4 py-3 font-mono text-xs">{{ t.apprenantId }}</td>
+            <td class="px-4 py-3 font-bold"
+              [ngClass]="t.reussi ? 'text-green-600' : 'text-red-500'">
+              {{ t.score }}%
+            </td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-1 rounded-full text-xs"
+                [ngClass]="t.reussi ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                {{ t.reussi ? 'Réussi' : 'Échoué' }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-gray-500">{{ t.passedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Créer Examen ── -->
+<div *ngIf="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+    <div class="h-2 bg-gradient-to-r from-blue-500 to-blue-700 rounded-t-2xl"></div>
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Créer un examen</h2>
+        <button (click)="closeModal()" class="text-gray-400 text-2xl">&times;</button>
+      </div>
+
+      <form [formGroup]="examenForm" (ngSubmit)="saveExamen()" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
+            <input formControlName="titre" type="text"
+              class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Cours lié</label>
+            <select formControlName="courId"
+              class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+              <option [value]="null">-- Aucun --</option>
+              <option *ngFor="let c of cours" [value]="c.id">{{ c.titre }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Durée (min)</label>
+            <input formControlName="dureeMinutes" type="number" min="1"
+              class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Score minimal (%)</label>
+            <input formControlName="scoreMinimal" type="number" min="0" max="100"
+              class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <input formControlName="description" type="text"
+              class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+          </div>
+        </div>
+
+        <!-- Questions -->
+        <div class="border-t pt-4">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold text-gray-700">Questions ({{ questions.length }})</h3>
+            <button type="button" (click)="addQuestion()"
+              class="text-sm text-blue-600 hover:underline">+ Ajouter une question</button>
+          </div>
+
+          <div formArrayName="questions" class="space-y-4">
+            <div *ngFor="let q of questions.controls; let qi = index" [formGroupName]="qi"
+              class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+              <div class="flex justify-between items-start mb-3">
+                <span class="font-semibold text-gray-700 text-sm">Question {{ qi + 1 }}</span>
+                <button type="button" (click)="removeQuestion(qi)"
+                  class="text-red-400 hover:text-red-600 text-xs">Supprimer</button>
+              </div>
+              <input formControlName="enonce" type="text" placeholder="Énoncé de la question *"
+                class="w-full border rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-orange-400">
+              <input formControlName="points" type="number" min="1" placeholder="Points"
+                class="w-24 border rounded-lg px-3 py-1.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-orange-400">
+
+              <!-- Réponses -->
+              <div formArrayName="reponses" class="space-y-2">
+                <div *ngFor="let r of reponses(qi).controls; let ri = index" [formGroupName]="ri"
+                  class="flex items-center gap-2">
+                  <input formControlName="correcte" type="checkbox" class="w-4 h-4 accent-green-600"
+                    title="Cocher si correcte">
+                  <input formControlName="texte" type="text" placeholder="Texte de la réponse *"
+                    class="flex-1 border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                  <button type="button" (click)="removeReponse(qi, ri)"
+                    class="text-red-400 hover:text-red-600 text-xs">✕</button>
+                </div>
+              </div>
+              <button type="button" (click)="addReponse(qi)"
+                class="mt-2 text-xs text-blue-600 hover:underline">+ Réponse</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" (click)="closeModal()"
+            class="px-4 py-2 border rounded-lg text-gray-600">Annuler</button>
+          <button type="submit" [disabled]="examenForm.invalid"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+            Créer l'examen
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

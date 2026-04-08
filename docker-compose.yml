@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: smartek-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: smartek_auth
+    volumes:
+      - mongodb_data:/data/db
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: smartek-keycloak
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8180
+    ports:
+      - "8180:8180"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+
+volumes:
+  mongodb_data:
+  keycloak_data:

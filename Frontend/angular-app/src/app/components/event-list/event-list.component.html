@@ -1,0 +1,82 @@
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Événements</h2>
+    <button
+      *ngIf="canCreateEvent()"
+      class="btn btn-primary"
+      (click)="createEvent()"
+    >
+      <i class="fas fa-plus me-2"></i>Créer un événement
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!loading && events.length === 0" class="alert alert-info">
+    Aucun événement disponible pour le moment.
+  </div>
+
+  <div class="row">
+    <div *ngFor="let event of events" class="col-md-6 col-lg-4 mb-4">
+      <div class="card h-100 shadow-sm hover-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h5 class="card-title">{{ event.title }}</h5>
+            <span class="badge" [ngClass]="getStatusClass(event.status!)">
+              {{ getStatusLabel(event.status!) }}
+            </span>
+          </div>
+
+          <p class="card-text text-muted small mb-3">
+            {{ event.description || 'Pas de description' }}
+          </p>
+
+          <div class="event-details mb-3">
+            <div class="detail-item">
+              <i class="fas fa-tag text-primary me-2"></i>
+              <span>{{ getEventTypeLabel(event.eventType) }}</span>
+            </div>
+            <div class="detail-item">
+              <i class="fas fa-calendar text-primary me-2"></i>
+              <span>{{ event.startDate | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="detail-item">
+              <i class="fas fa-map-marker-alt text-primary me-2"></i>
+              <span>{{ event.location }}</span>
+            </div>
+            <div class="detail-item" *ngIf="event.maxParticipants">
+              <i class="fas fa-users text-primary me-2"></i>
+              <span>{{ event.currentParticipants || 0 }} / {{ event.maxParticipants }}</span>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button
+              class="btn btn-sm btn-outline-primary flex-grow-1"
+              (click)="viewEventDetails(event.id!)"
+            >
+              Détails
+            </button>
+            <button
+              *ngIf="authService.isAuthenticated() && !canCreateEvent()"
+              class="btn btn-sm btn-primary flex-grow-1"
+              (click)="registerForEvent(event.id!)"
+              [disabled]="event.maxParticipants && event.currentParticipants! >= event.maxParticipants"
+            >
+              <i class="fas fa-user-plus me-1"></i>
+              {{ event.maxParticipants && event.currentParticipants! >= event.maxParticipants ? 'Complet' : 'S\'inscrire' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

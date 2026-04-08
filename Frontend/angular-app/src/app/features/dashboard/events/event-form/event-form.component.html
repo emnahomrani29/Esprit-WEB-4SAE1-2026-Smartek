@@ -1,0 +1,162 @@
+<div class="container-fluid p-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- Header -->
+      <div class="d-flex align-items-center mb-4">
+        <button class="btn btn-outline-secondary me-3" (click)="cancel()">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <div>
+          <h2 class="mb-1">{{ isEditMode ? 'Modifier l\'événement' : 'Créer un événement' }}</h2>
+          <p class="text-muted mb-0">Remplissez les informations de l'événement</p>
+        </div>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <form [formGroup]="eventForm" (ngSubmit)="onSubmit()">
+            <!-- Title -->
+            <div class="mb-3">
+              <label for="title" class="form-label">Titre <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                class="form-control"
+                id="title"
+                formControlName="title"
+                placeholder="Ex: Webinaire Spring Boot"
+                [class.is-invalid]="eventForm.get('title')?.invalid && eventForm.get('title')?.touched"
+              />
+              <div class="invalid-feedback" *ngIf="eventForm.get('title')?.errors?.['required']">
+                Le titre est requis
+              </div>
+              <div class="invalid-feedback" *ngIf="eventForm.get('title')?.errors?.['minlength']">
+                Le titre doit contenir au moins 3 caractères
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+              <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+              <textarea
+                class="form-control"
+                id="description"
+                formControlName="description"
+                rows="4"
+                placeholder="Décrivez votre événement..."
+                [class.is-invalid]="eventForm.get('description')?.invalid && eventForm.get('description')?.touched"
+              ></textarea>
+              <div class="invalid-feedback">
+                La description est requise
+              </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="startDate" class="form-label">Date de début <span class="text-danger">*</span></label>
+                <input
+                  type="datetime-local"
+                  class="form-control"
+                  id="startDate"
+                  formControlName="startDate"
+                  [class.is-invalid]="eventForm.get('startDate')?.invalid && eventForm.get('startDate')?.touched"
+                />
+                <div class="invalid-feedback">
+                  La date de début est requise
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="endDate" class="form-label">Date de fin <span class="text-danger">*</span></label>
+                <input
+                  type="datetime-local"
+                  class="form-control"
+                  id="endDate"
+                  formControlName="endDate"
+                  [class.is-invalid]="eventForm.get('endDate')?.invalid && eventForm.get('endDate')?.touched"
+                />
+                <div class="invalid-feedback">
+                  La date de fin est requise
+                </div>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="mb-3">
+              <label for="location" class="form-label">Lieu <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                class="form-control"
+                id="location"
+                formControlName="location"
+                placeholder="Ex: En ligne, Salle 101, etc."
+                [class.is-invalid]="eventForm.get('location')?.invalid && eventForm.get('location')?.touched"
+              />
+              <div class="invalid-feedback">
+                Le lieu est requis
+              </div>
+            </div>
+
+            <!-- Event Type & Max Participants -->
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="eventType" class="form-label">Type d'événement <span class="text-danger">*</span></label>
+                <select
+                  class="form-select"
+                  id="eventType"
+                  formControlName="eventType"
+                >
+                  <option *ngFor="let type of eventTypes" [value]="type">
+                    {{ getEventTypeLabel(type) }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="maxParticipants" class="form-label">Nombre maximum de participants</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="maxParticipants"
+                  formControlName="maxParticipants"
+                  min="1"
+                  placeholder="Illimité si vide"
+                  [class.is-invalid]="eventForm.get('maxParticipants')?.invalid && eventForm.get('maxParticipants')?.touched"
+                />
+                <div class="invalid-feedback">
+                  Le nombre doit être supérieur à 0
+                </div>
+              </div>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="error" class="alert alert-danger">
+              <i class="fas fa-exclamation-circle me-2"></i>{{ error }}
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                (click)="cancel()"
+                [disabled]="loading"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="!eventForm.valid || loading"
+              >
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                {{ loading ? 'Enregistrement...' : (isEditMode ? 'Mettre à jour' : 'Créer l\'événement') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

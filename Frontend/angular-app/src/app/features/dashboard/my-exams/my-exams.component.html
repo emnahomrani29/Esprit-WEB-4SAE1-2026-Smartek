@@ -1,0 +1,193 @@
+<div class="p-6">
+
+  <!-- ── LISTE DES EXAMENS ── -->
+  <div *ngIf="view === 'liste'">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">Mes Examens</h1>
+      <div class="flex gap-3">
+        <button (click)="voirCertifications()"
+          class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+          🏆 Mes Certifications
+        </button>
+        <button (click)="voirHistorique()"
+          class="text-sm text-blue-600 hover:underline">Voir mon historique →</button>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="text-center py-10 text-gray-400">Chargement...</div>
+
+    <div *ngIf="!loading && examens.length === 0"
+      class="text-center py-16 bg-white rounded-xl shadow text-gray-400">
+      <p class="text-5xl mb-3">📝</p>
+      Aucun examen disponible
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div *ngFor="let e of examens"
+        class="bg-white rounded-xl shadow hover:shadow-md transition overflow-hidden">
+        <div class="h-2 bg-gradient-to-r from-orange-400 to-red-500"></div>
+        <div class="p-5">
+          <h3 class="font-bold text-gray-800 text-lg mb-2">{{ e.titre }}</h3>
+          <p class="text-gray-500 text-sm mb-4">{{ e.description || 'Aucune description' }}</p>
+
+          <div class="flex gap-3 text-xs text-gray-500 mb-4">
+            <span>⏱ {{ e.dureeMinutes }} min</span>
+            <span>❓ {{ e.questions.length }} questions</span>
+            <span>✅ {{ e.scoreMinimal }}% requis</span>
+          </div>
+
+          <!-- Déjà passé -->
+          <div *ngIf="aDejaPasse(e.id) as t" class="mb-3 p-3 rounded-lg"
+            [ngClass]="t.reussi ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'">
+            <p class="text-sm font-semibold" [ngClass]="t.reussi ? 'text-green-700' : 'text-red-700'">
+              {{ t.reussi ? '✅ Réussi' : '❌ Échoué' }} — Score : {{ t.score }}%
+            </p>
+          </div>
+
+          <button (click)="commencerExamen(e)"
+            class="w-full py-2 rounded-lg text-sm font-medium transition"
+            [ngClass]="aDejaPasse(e.id) ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-orange-500 text-white hover:bg-orange-600'">
+            {{ aDejaPasse(e.id) ? 'Repasser l\'examen' : 'Commencer l\'examen' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PASSER L'EXAMEN ── -->
+  <div *ngIf="view === 'passer' && examenEnCours">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">{{ examenEnCours.titre }}</h1>
+      <div class="flex items-center gap-4">
+        <span class="text-lg font-mono font-bold px-4 py-2 rounded-lg"
+          [ngClass]="tempsRestant < 60 ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'">
+          ⏱ {{ tempsFormate }}
+        </span>
+        <button (click)="retourListe()" class="text-gray-400 hover:text-gray-600 text-sm">Annuler</button>
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <div *ngFor="let q of examenEnCours.questions; let i = index"
+        class="bg-white rounded-xl shadow p-5">
+        <p class="font-semibold text-gray-800 mb-4">
+          <span class="text-blue-600 mr-2">Q{{ i + 1 }}.</span>{{ q.enonce }}
+          <span class="text-xs text-gray-400 ml-2">({{ q.points }} pt{{ q.points > 1 ? 's' : '' }})</span>
+        </p>
+        <div class="space-y-2">
+          <label *ngFor="let r of q.reponses"
+            class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition"
+            [ngClass]="isSelected(q.id, r.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'">
+            <input type="checkbox" [checked]="isSelected(q.id, r.id)"
+              (change)="toggleReponse(q.id, r.id)" class="w-4 h-4 accent-blue-600">
+            <span class="text-gray-700">{{ r.texte }}</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 flex justify-end">
+      <button (click)="soumettre()"
+        class="px-8 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition">
+        Soumettre l'examen
+      </button>
+    </div>
+  </div>
+
+  <!-- ── RÉSULTAT ── -->
+  <div *ngIf="view === 'resultat' && dernierResultat" class="max-w-lg mx-auto text-center">
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <div class="text-7xl mb-4">{{ dernierResultat.reussi ? '🎉' : '😔' }}</div>
+      <h2 class="text-2xl font-bold mb-2"
+        [ngClass]="dernierResultat.reussi ? 'text-green-600' : 'text-red-600'">
+        {{ dernierResultat.reussi ? 'Félicitations !' : 'Pas encore...' }}
+      </h2>
+      <p class="text-gray-600 mb-6">{{ dernierResultat.examenTitre }}</p>
+
+      <div class="text-5xl font-bold mb-2"
+        [ngClass]="dernierResultat.reussi ? 'text-green-600' : 'text-red-500'">
+        {{ dernierResultat.score }}%
+      </div>
+      <p class="text-gray-500 text-sm mb-8">
+        {{ dernierResultat.reussi ? 'Examen réussi ✅' : 'Score insuffisant — réessayez !' }}
+      </p>
+
+      <div class="flex gap-3 justify-center">
+        <button (click)="retourListe()"
+          class="px-6 py-2 border rounded-lg text-gray-600 hover:bg-gray-50">
+          Retour aux examens
+        </button>
+        <button *ngIf="!dernierResultat.reussi && examenEnCours"
+          (click)="commencerExamen(examenEnCours!)"
+          class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+          Réessayer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HISTORIQUE ── -->
+  <div *ngIf="view === 'historique'">
+    <div class="flex items-center gap-3 mb-6">
+      <button (click)="retourListe()" class="text-gray-400 hover:text-gray-600 text-xl">←</button>
+      <h1 class="text-2xl font-bold text-gray-800">Mon Historique</h1>
+    </div>
+
+    <div *ngIf="tentatives.length === 0"
+      class="text-center py-16 bg-white rounded-xl shadow text-gray-400">
+      Aucune tentative pour le moment
+    </div>
+
+    <div class="space-y-3">
+      <div *ngFor="let t of tentatives"
+        class="flex items-center gap-4 p-4 bg-white rounded-xl shadow">
+        <span class="text-2xl">{{ t.reussi ? '✅' : '❌' }}</span>
+        <div class="flex-1">
+          <p class="font-semibold text-gray-800">{{ t.examenTitre }}</p>
+          <p class="text-xs text-gray-500">{{ t.passedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+        </div>
+        <span class="text-xl font-bold"
+          [ngClass]="t.reussi ? 'text-green-600' : 'text-red-500'">
+          {{ t.score }}%
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- ── CERTIFICATIONS ── -->
+  <div *ngIf="view === 'certifications'">
+    <div class="flex items-center gap-3 mb-6">
+      <button (click)="retourListe()" class="text-gray-400 hover:text-gray-600 text-xl">←</button>
+      <h1 class="text-2xl font-bold text-gray-800">🏆 Mes Certifications</h1>
+    </div>
+
+    <div *ngIf="certifications.length === 0"
+      class="text-center py-16 bg-white rounded-xl shadow text-gray-400">
+      <p class="text-5xl mb-3">🎓</p>
+      Aucune certification — réussissez un examen pour en obtenir une !
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div *ngFor="let c of certifications"
+        class="bg-white rounded-xl shadow overflow-hidden hover:shadow-md transition">
+        <div class="h-2 bg-gradient-to-r from-yellow-400 to-green-500"></div>
+        <div class="p-5">
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <h3 class="font-bold text-gray-800 text-lg">{{ c.examenTitre }}</h3>
+              <p class="text-xs text-gray-400 mt-1">N° {{ c.numeroCertificat }}</p>
+            </div>
+            <span class="text-2xl font-bold text-green-600">{{ c.score }}%</span>
+          </div>
+          <p class="text-sm text-gray-500 mb-4">
+            Délivré le {{ c.delivreeLe | date:'dd/MM/yyyy' }}
+          </p>
+          <button (click)="downloadCertificat(c.id)"
+            class="w-full py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition">
+            📄 Télécharger le certificat PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

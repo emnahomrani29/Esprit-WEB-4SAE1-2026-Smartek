@@ -1,0 +1,109 @@
+<div class="p-6">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Mes Formations</h1>
+    <p class="text-gray-500 mt-1">Explorez les formations disponibles</p>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-16 text-gray-400">
+    <div class="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-3"></div>
+    Chargement...
+  </div>
+
+  <div *ngIf="!isLoading && formations.length === 0"
+    class="text-center py-16 bg-white rounded-xl shadow">
+    <p class="text-5xl mb-3">🎓</p>
+    <p class="text-gray-500">Aucune formation disponible pour le moment</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let f of formations"
+      class="bg-white rounded-xl shadow hover:shadow-md transition overflow-hidden">
+      <div class="h-2 bg-gradient-to-r from-purple-500 to-blue-500"></div>
+      <div class="p-5">
+        <h3 class="font-bold text-gray-800 text-lg mb-2">{{ f.titre }}</h3>
+        <p class="text-gray-500 text-sm mb-4 line-clamp-2">
+          {{ f.description || 'Aucune description' }}
+        </p>
+        <div class="flex flex-wrap gap-2 text-xs mb-4">
+          <span *ngIf="f.categorie" class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+            📂 {{ f.categorie }}
+          </span>
+          <span *ngIf="f.niveau" class="px-2 py-1 rounded-full"
+            [ngClass]="getNiveauClass(f.niveau)">
+            {{ f.niveau }}
+          </span>
+          <span *ngIf="f.duree" class="bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
+            ⏱ {{ f.duree }}
+          </span>
+        </div>
+        <div class="text-xs text-gray-400 mb-4">
+          {{ f.courIds?.length || 0 }} cours
+        </div>
+        <button (click)="viewFormation(f)"
+          class="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition text-sm">
+          Voir les cours →
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal détail formation -->
+<div *ngIf="selectedFormation" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div class="h-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-t-2xl"></div>
+    <div class="p-6">
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800">{{ selectedFormation.titre }}</h2>
+          <div class="flex gap-2 mt-2">
+            <span *ngIf="selectedFormation.categorie"
+              class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+              {{ selectedFormation.categorie }}
+            </span>
+            <span *ngIf="selectedFormation.niveau" class="text-xs px-2 py-1 rounded-full"
+              [ngClass]="getNiveauClass(selectedFormation.niveau)">
+              {{ selectedFormation.niveau }}
+            </span>
+          </div>
+        </div>
+        <button (click)="selectedFormation = null" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+      </div>
+
+      <p class="text-gray-600 mb-6">{{ selectedFormation.description || 'Aucune description' }}</p>
+
+      <h3 class="font-semibold text-gray-700 mb-3">
+        Cours de cette formation ({{ formationCours.length }})
+      </h3>
+
+      <div *ngIf="loadingCours" class="text-center py-4 text-gray-400 text-sm">Chargement...</div>
+
+      <div *ngIf="!loadingCours && formationCours.length === 0"
+        class="text-center py-6 bg-gray-50 rounded-xl text-gray-400 text-sm">
+        Aucun cours dans cette formation
+      </div>
+
+      <div class="space-y-3">
+        <div *ngFor="let c of formationCours; let i = index"
+          class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-blue-50 transition">
+          <span class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-sm shrink-0">
+            {{ i + 1 }}
+          </span>
+          <div class="flex-1">
+            <p class="font-semibold text-gray-800">{{ c.titre }}</p>
+            <div class="flex gap-3 text-xs text-gray-500 mt-1">
+              <span>⏱ {{ c.dureeHeures }}h</span>
+              <span *ngIf="c.instructeur">👤 {{ c.instructeur }}</span>
+              <span class="px-1.5 py-0.5 rounded" [ngClass]="getNiveauClass(c.niveau)">{{ c.niveau }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end">
+        <button (click)="selectedFormation = null"
+          class="px-5 py-2 border rounded-lg text-gray-600 hover:bg-gray-50">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>

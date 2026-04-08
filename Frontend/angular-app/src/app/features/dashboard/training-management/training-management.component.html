@@ -1,0 +1,308 @@
+<div class="p-6">
+
+  <!-- ── Breadcrumb ── -->
+  <div class="flex items-center gap-2 text-sm text-gray-500 mb-4">
+    <button (click)="currentStep = 'formations'; selectedFormation = null"
+      class="hover:text-blue-600" [class.text-blue-600]="currentStep === 'formations'">
+      Formations
+    </button>
+    <span *ngIf="currentStep !== 'formations'"> / </span>
+    <button *ngIf="currentStep !== 'formations'" (click)="currentStep = 'cours'; selectedCour = null"
+      class="hover:text-blue-600" [class.text-blue-600]="currentStep === 'cours'">
+      {{ selectedFormation?.titre }}
+    </button>
+    <span *ngIf="currentStep === 'chapitres'"> / </span>
+    <span *ngIf="currentStep === 'chapitres'" class="text-blue-600">
+      {{ selectedCour?.titre }}
+    </span>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- STEP 1 : FORMATIONS                                  -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div *ngIf="currentStep === 'formations'">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">Formations</h1>
+      <button (click)="openCreateFormation()"
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        + Nouvelle formation
+      </button>
+    </div>
+
+    <div *ngIf="loading" class="text-center py-10 text-gray-400">Chargement...</div>
+
+    <div *ngIf="!loading && formations.length === 0"
+      class="text-center py-16 bg-white rounded-xl shadow text-gray-400">
+      <p class="text-4xl mb-3">🎓</p>
+      Aucune formation — créez-en une pour commencer
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div *ngFor="let f of formations"
+        class="bg-white rounded-xl shadow hover:shadow-md transition overflow-hidden">
+        <div class="h-2 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+        <div class="p-5">
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="font-bold text-gray-800 text-lg">{{ f.titre }}</h3>
+            <span *ngIf="f.actif" class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Actif</span>
+          </div>
+          <p class="text-gray-500 text-sm mb-3 line-clamp-2">{{ f.description || 'Aucune description' }}</p>
+          <div class="flex gap-2 text-xs text-gray-500 mb-4">
+            <span *ngIf="f.categorie">📂 {{ f.categorie }}</span>
+            <span *ngIf="f.niveau">📊 {{ f.niveau }}</span>
+            <span *ngIf="f.duree">⏱ {{ f.duree }}</span>
+          </div>
+          <div class="text-xs text-gray-400 mb-4">{{ f.courIds?.length || 0 }} cours</div>
+          <div class="flex gap-2">
+            <button (click)="enterFormation(f)"
+              class="flex-1 bg-blue-600 text-white text-sm py-2 rounded-lg hover:bg-blue-700">
+              Gérer les cours →
+            </button>
+            <button (click)="openEditFormation(f)"
+              class="px-3 py-2 border rounded-lg text-gray-600 hover:bg-gray-50 text-sm">✏️</button>
+            <button (click)="deleteFormation(f.id!)"
+              class="px-3 py-2 border border-red-200 rounded-lg text-red-500 hover:bg-red-50 text-sm">🗑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- STEP 2 : COURS DE LA FORMATION                       -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div *ngIf="currentStep === 'cours'">
+    <div class="flex justify-between items-center mb-6">
+      <div class="flex items-center gap-3">
+        <button (click)="goBack()" class="text-gray-400 hover:text-gray-600 text-xl">←</button>
+        <h1 class="text-2xl font-bold text-gray-800">
+          Cours — <span class="text-blue-600">{{ selectedFormation?.titre }}</span>
+        </h1>
+      </div>
+      <button (click)="openCreateCours()"
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        + Nouveau cours
+      </button>
+    </div>
+
+    <div *ngIf="formationCours.length === 0"
+      class="text-center py-16 bg-white rounded-xl shadow text-gray-400">
+      <p class="text-4xl mb-3">📚</p>
+      Aucun cours dans cette formation
+    </div>
+
+    <div class="overflow-x-auto bg-white rounded-xl shadow">
+      <table *ngIf="formationCours.length > 0" class="w-full text-sm text-left">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+          <tr>
+            <th class="px-4 py-3">Titre</th>
+            <th class="px-4 py-3">Catégorie</th>
+            <th class="px-4 py-3">Niveau</th>
+            <th class="px-4 py-3">Durée</th>
+            <th class="px-4 py-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of formationCours" class="border-t hover:bg-gray-50">
+            <td class="px-4 py-3 font-medium">{{ c.titre }}</td>
+            <td class="px-4 py-3">{{ c.categorie }}</td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-1 rounded-full text-xs" [ngClass]="getNiveauClass(c.niveau)">
+                {{ c.niveau }}
+              </span>
+            </td>
+            <td class="px-4 py-3">{{ c.dureeHeures }}h</td>
+            <td class="px-4 py-3 flex gap-2">
+              <button (click)="enterCours(c)"
+                class="text-green-600 hover:underline text-xs">Chapitres</button>
+              <button (click)="openEditCours(c)"
+                class="text-blue-600 hover:underline text-xs">Modifier</button>
+              <button (click)="deleteCours(c)"
+                class="text-red-500 hover:underline text-xs">Supprimer</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════ -->
+  <!-- STEP 3 : CHAPITRES DU COURS                          -->
+  <!-- ════════════════════════════════════════════════════ -->
+  <div *ngIf="currentStep === 'chapitres'">
+    <div class="flex justify-between items-center mb-6">
+      <div class="flex items-center gap-3">
+        <button (click)="goBack()" class="text-gray-400 hover:text-gray-600 text-xl">←</button>
+        <h1 class="text-2xl font-bold text-gray-800">
+          Chapitres — <span class="text-blue-600">{{ selectedCour?.titre }}</span>
+        </h1>
+      </div>
+      <button (click)="showChapitreForm = true"
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        + Nouveau chapitre
+      </button>
+    </div>
+
+    <!-- Formulaire ajout chapitre -->
+    <div *ngIf="showChapitreForm"
+      class="mb-6 p-5 bg-blue-50 rounded-xl border border-blue-200 space-y-3">
+      <h3 class="font-semibold text-gray-700">Nouveau chapitre</h3>
+      <input [(ngModel)]="newChapitre.titre" type="text" placeholder="Titre *"
+        class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+      <textarea [(ngModel)]="newChapitre.description" rows="2" placeholder="Description (optionnel)"
+        class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+      <input [(ngModel)]="newChapitre.ordre" type="number" min="1" placeholder="Ordre"
+        class="w-32 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+      <div class="flex gap-2 justify-end">
+        <button (click)="showChapitreForm = false"
+          class="px-4 py-2 border rounded-lg text-gray-600">Annuler</button>
+        <button (click)="saveChapitre()"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Sauvegarder</button>
+      </div>
+    </div>
+
+    <div *ngIf="chapitres.length === 0 && !showChapitreForm"
+      class="text-center py-16 bg-white rounded-xl shadow text-gray-400">
+      <p class="text-4xl mb-3">📄</p>
+      Aucun chapitre — ajoutez-en un
+    </div>
+
+    <div class="space-y-3">
+      <div *ngFor="let ch of chapitres"
+        class="flex items-center gap-4 p-4 bg-white rounded-xl shadow hover:shadow-md transition">
+        <span class="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold shrink-0">
+          {{ ch.ordre }}
+        </span>
+        <div class="flex-1">
+          <p class="font-semibold text-gray-800">{{ ch.titre }}</p>
+          <p *ngIf="ch.description" class="text-sm text-gray-500">{{ ch.description }}</p>
+        </div>
+        <button (click)="deleteChapitre(ch.id)"
+          class="text-red-400 hover:text-red-600 text-sm px-3 py-1 border border-red-200 rounded-lg">
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Formation ── -->
+<div *ngIf="showFormationModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold">{{ isEditFormation ? 'Modifier' : 'Créer' }} une formation</h2>
+      <button (click)="showFormationModal = false" class="text-gray-400 text-2xl">&times;</button>
+    </div>
+    <form [formGroup]="formationForm" (ngSubmit)="saveFormation()" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
+        <input formControlName="titre" type="text" placeholder="Titre de la formation"
+          class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea formControlName="description" rows="3"
+          class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+          <select formControlName="categorie"
+            class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <option value="">-- Choisir --</option>
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Niveau</label>
+          <select formControlName="niveau"
+            class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <option value="">-- Choisir --</option>
+            <option *ngFor="let n of niveaux" [value]="n">{{ n }}</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Durée</label>
+        <input formControlName="duree" type="text" placeholder="ex: 3 mois, 40h..."
+          class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+      </div>
+      <div class="flex items-center gap-2">
+        <input formControlName="actif" type="checkbox" id="fActif" class="w-4 h-4">
+        <label for="fActif" class="text-sm text-gray-700">Formation active</label>
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" (click)="showFormationModal = false"
+          class="px-4 py-2 border rounded-lg text-gray-600">Annuler</button>
+        <button type="submit" [disabled]="formationForm.invalid"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+          {{ isEditFormation ? 'Modifier' : 'Créer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── Modal Cours ── -->
+<div *ngIf="showCoursModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold">{{ isEditCours ? 'Modifier' : 'Ajouter' }} un cours</h2>
+      <button (click)="showCoursModal = false" class="text-gray-400 text-2xl">&times;</button>
+    </div>
+    <form [formGroup]="coursForm" (ngSubmit)="saveCours()" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
+        <input formControlName="titre" type="text"
+          class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea formControlName="description" rows="2"
+          class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie *</label>
+          <select formControlName="categorie"
+            class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <option value="">-- Choisir --</option>
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Niveau *</label>
+          <select formControlName="niveau"
+            class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <option *ngFor="let n of niveaux" [value]="n">{{ n }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Durée (h) *</label>
+          <input formControlName="dureeHeures" type="number" min="1"
+            class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Prix (TND)</label>
+          <input formControlName="prix" type="number" min="0"
+            class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Instructeur</label>
+        <input formControlName="instructeur" type="text"
+          class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+      </div>
+      <div class="flex justify-end gap-3 pt-2">
+        <button type="button" (click)="showCoursModal = false"
+          class="px-4 py-2 border rounded-lg text-gray-600">Annuler</button>
+        <button type="submit" [disabled]="coursForm.invalid"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+          {{ isEditCours ? 'Modifier' : 'Créer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
