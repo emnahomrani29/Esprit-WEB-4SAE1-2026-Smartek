@@ -3,7 +3,7 @@ spring:
     name: certification-service
 
   datasource:
-    url: jdbc:h2:mem:certification_db
+    url: jdbc:h2:file:./data/certification_db;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -15,7 +15,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:

@@ -1,6 +1,6 @@
-version: '3.8'
-
 services:
+
+  # ─── Infrastructure ───────────────────────────────────────────────
   mongodb:
     image: mongo:7
     container_name: smartek-mongodb
@@ -10,6 +10,26 @@ services:
       MONGO_INITDB_DATABASE: smartek_auth
     volumes:
       - mongodb_data:/data/db
+    networks:
+      - smartek-net
+
+  mysql:
+    image: mysql:8
+    container_name: smartek-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: smartek
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - smartek-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   keycloak:
     image: quay.io/keycloak/keycloak:23.0
@@ -23,7 +43,237 @@ services:
       - "8180:8180"
     volumes:
       - keycloak_data:/opt/keycloak/data
+    networks:
+      - smartek-net
+
+  # ─── Service Discovery ────────────────────────────────────────────
+  eureka-server:
+    build: ./Backend/eureka-server
+    image: smartek/eureka-server:1.0.0
+    container_name: smartek-eureka
+    ports:
+      - "8761:8761"
+    networks:
+      - smartek-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ─── Config Server ────────────────────────────────────────────────
+  config-server:
+    build: ./Backend/config-server
+    image: smartek/config-server:1.0.0
+    container_name: smartek-config
+    ports:
+      - "8888:8888"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - smartek-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8888/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ─── Auth Service (Node.js) ───────────────────────────────────────
+  auth-service:
+    build: ./Backend/auth-service-node
+    image: smartek/auth-service:1.0.0
+    container_name: smartek-auth
+    ports:
+      - "8081:3000"
+    environment:
+      PORT: 3000
+      MONGODB_URI: mongodb://mongodb:27017/smartek_auth
+      JWT_SECRET: smartek-secret-key-for-jwt-token-generation-2024-very-secure
+      JWT_EXPIRATION: 86400000
+      FRONTEND_URL: http://localhost:4200
+    depends_on:
+      - mongodb
+    networks:
+      - smartek-net
+
+  # ─── Microservices ────────────────────────────────────────────────
+  cour-service:
+    build: ./Backend/cour-service
+    image: smartek/cour-service:1.0.0
+    container_name: smartek-cour
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smartek_cour?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    networks:
+      - smartek-net
+
+  formation-service:
+    build: ./Backend/formation-service
+    image: smartek/formation-service:1.0.0
+    container_name: smartek-formation
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/formation_db;AUTO_SERVER=TRUE
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ""
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    volumes:
+      - formation_h2_data:/data
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    networks:
+      - smartek-net
+
+  examen-service:
+    build: ./Backend/examen-service
+    image: smartek/examen-service:1.0.0
+    container_name: smartek-examen
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smartek_examen?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    networks:
+      - smartek-net
+
+  certification-service:
+    build: ./Backend/certification-service
+    image: smartek/certification-service:1.0.0
+    container_name: smartek-certification
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/certification_db;AUTO_SERVER=TRUE
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ""
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    volumes:
+      - certification_h2_data:/data
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    networks:
+      - smartek-net
+
+  event-service:
+    build: ./Backend/event-service
+    image: smartek/event-service:1.0.0
+    container_name: smartek-event
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/event_db;AUTO_SERVER=TRUE
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ""
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    volumes:
+      - event_h2_data:/data
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    networks:
+      - smartek-net
+
+  planning-service:
+    build: ./Backend/planning-service
+    image: smartek/planning-service:1.0.0
+    container_name: smartek-planning
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/smartek_planning?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SERVICES_EVENT_URL: http://event-service:8084
+      SERVICES_COUR_URL: http://cour-service:8085
+      SERVICES_EXAMEN_URL: http://examen-service:8087
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    networks:
+      - smartek-net
+
+  # ─── API Gateway ──────────────────────────────────────────────────
+  api-gateway:
+    build: ./Backend/api-gateway
+    image: smartek/api-gateway:1.0.0
+    container_name: smartek-gateway
+    ports:
+      - "8090:8090"
+    environment:
+      SPRING_CLOUD_CONFIG_URI: http://config-server:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      SPRING_CLOUD_GATEWAY_GLOBALCORS_CORSCONFIGURATIONS_[/**]_ALLOWEDORIGINS: "http://localhost:4200"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    networks:
+      - smartek-net
+
+  # ─── Frontend ─────────────────────────────────────────────────────
+  frontend:
+    build: ./Frontend/angular-app
+    image: smartek/frontend:1.0.0
+    container_name: smartek-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - smartek-net
+
+networks:
+  smartek-net:
+    driver: bridge
 
 volumes:
   mongodb_data:
+  mysql_data:
   keycloak_data:
+  formation_h2_data:
+  certification_h2_data:
+  event_h2_data:
