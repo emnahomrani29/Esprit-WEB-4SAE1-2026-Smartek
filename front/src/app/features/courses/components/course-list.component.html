@@ -1,0 +1,35 @@
+<div class="course-list-container">
+  <h1>Liste des Cours</h1>
+
+  <div *ngIf="loading" class="loading">
+    Chargement des cours...
+  </div>
+
+  <div *ngIf="error" class="error">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!loading && !error" class="courses-grid">
+    <div *ngFor="let course of courses" class="course-card">
+      <h3>{{ course.title }}</h3>
+      <p class="description">{{ course.description }}</p>
+      <div class="course-info">
+        <span class="badge">{{ course.level }}</span>
+        <span class="duration">{{ course.duration }} heures</span>
+      </div>
+      <div class="course-meta">
+        <small>Formateur ID: {{ course.trainerId }}</small>
+        <small>Créé le: {{ course.createdAt | date:'short' }}</small>
+      </div>
+      <div class="actions">
+        <button class="btn-view">Voir</button>
+        <button class="btn-edit">Modifier</button>
+        <button class="btn-delete" (click)="deleteCourse(course.id)">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !error && courses.length === 0" class="no-courses">
+    Aucun cours disponible
+  </div>
+</div>

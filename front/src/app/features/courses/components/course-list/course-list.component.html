@@ -1,0 +1,72 @@
+<div class="course-list-container">
+  <div class="header">
+    <h1>Liste des Cours</h1>
+    <button type="button" class="btn-primary" (click)="createCourse()">+ Nouveau Cours</button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Chargement des cours...</p>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    <span class="error-icon">⚠️</span>
+    {{ error }}
+  </div>
+
+  <div *ngIf="!loading && !error" class="courses-grid">
+    <div *ngFor="let course of courses; let i = index" class="course-card">
+      <div class="course-header">
+        <h3>{{ course.title || 'Sans titre' }}</h3>
+        <span class="badge" [ngClass]="'badge-' + (course.level ? course.level.toLowerCase() : 'debutant')">
+          {{ course.level || 'DEBUTANT' }}
+        </span>
+      </div>
+      
+      <p class="description">{{ course.description || 'Pas de description' }}</p>
+      
+      <div class="course-info">
+        <div class="info-item">
+          <span class="icon">⏱️</span>
+          <span>{{ course.duration || 0 }} heures</span>
+        </div>
+        <div class="info-item">
+          <span class="icon">👤</span>
+          <span>Formateur #{{ course.trainerId || 'N/A' }}</span>
+        </div>
+      </div>
+      
+      <div class="course-meta">
+        <small>Créé le: {{ course.createdAt | date:'dd/MM/yyyy' }}</small>
+      </div>
+      
+      <div class="actions">
+        <button type="button" class="btn-view" (click)="viewCourseByIndex(i)">
+          <span class="icon">👁️</span> Voir
+        </button>
+        <button type="button" class="btn-edit" (click)="editCourseByIndex(i)">
+          <span class="icon">✏️</span> Modifier
+        </button>
+        <button type="button" class="btn-delete" (click)="deleteCourseByIndex(i)">
+          <span class="icon">🗑️</span> Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !error && courses.length === 0" class="no-courses">
+    <div class="empty-state">
+      <span class="empty-icon">📚</span>
+      <h3>Aucun cours disponible</h3>
+      <p>Commencez par créer votre premier cours</p>
+      <button type="button" class="btn-primary" (click)="createCourse()">Créer un cours</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour afficher les détails -->
+<app-course-detail-modal 
+  *ngIf="showModal" 
+  [courseId]="selectedCourseId"
+  (close)="closeModal()">
+</app-course-detail-modal>

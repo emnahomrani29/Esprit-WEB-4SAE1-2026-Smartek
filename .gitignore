@@ -1,0 +1,50 @@
+# Node modules
+front/node_modules/
+front/.angular/
+front/dist/
+front/.cache/
+
+# Maven
+**/target/
+**/.mvn/
+**/mvnw
+**/mvnw.cmd
+
+# IDE
+**/.idea/
+**/.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Uploads
+course-service/uploads/pdfs/
+
+# Compiled files
+*.class
+*.jar
+!**/wrapper/*.jar
+
+# Package files
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Test
+**/test-output/
+**/.pytest_cache/
+
+# Environment
+.env
+.env.local

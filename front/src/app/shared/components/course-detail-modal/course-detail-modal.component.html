@@ -1,0 +1,84 @@
+<div class="modal-backdrop" (click)="onBackdropClick($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <button class="close-button" (click)="closeModal()">✕</button>
+
+    <div *ngIf="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
+    </div>
+
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <div *ngIf="course && !loading" class="course-details">
+      <div class="modal-header">
+        <h2>{{ course.title }}</h2>
+        <span class="badge" [ngClass]="'badge-' + (course.level ? course.level.toLowerCase() : 'debutant')">
+          {{ course.level || 'DEBUTANT' }}
+        </span>
+      </div>
+
+      <div class="course-info">
+        <p class="description">{{ course.description }}</p>
+
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="icon">⏱️</span>
+            <div>
+              <strong>Durée</strong>
+              <span>{{ course.duration }} heures</span>
+            </div>
+          </div>
+
+          <div class="meta-item">
+            <span class="icon">👤</span>
+            <div>
+              <strong>Formateur</strong>
+              <span>ID #{{ course.trainerId }}</span>
+            </div>
+          </div>
+
+          <div class="meta-item">
+            <span class="icon">📅</span>
+            <div>
+              <strong>Créé le</strong>
+              <span>{{ course.createdAt | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+
+          <div class="meta-item">
+            <span class="icon">🔄</span>
+            <div>
+              <strong>Mis à jour</strong>
+              <span>{{ course.updatedAt | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chapters-section" *ngIf="chapters.length > 0">
+        <h3>
+          📖 Chapitres
+          <span class="chapter-count">{{ chapters.length }}</span>
+        </h3>
+
+        <div class="chapters-list">
+          <div *ngFor="let chapter of chapters" class="chapter-item">
+            <div class="chapter-number">{{ chapter.orderIndex }}</div>
+            <div class="chapter-content">
+              <h4>{{ chapter.title }}</h4>
+              <p>{{ chapter.description }}</p>
+              <span *ngIf="chapter.pdfPath" class="pdf-badge">
+                📄 PDF disponible
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="no-chapters" *ngIf="chapters.length === 0">
+        <span class="icon">📚</span>
+        <p>Aucun chapitre disponible</p>
+      </div>
+    </div>
+  </div>
+</div>

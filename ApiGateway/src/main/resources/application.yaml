@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:4200"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      routes:
+        - id: course-service
+          uri: lb://course-service
+          predicates:
+            - Path=/api/courses/**
+          filters:
+            - StripPrefix=1
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+server:
+  port: 9090
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    tn.esprit.apigateway: INFO
+    org.springframework.cloud.gateway: INFO
+    org.springframework.cloud.loadbalancer: DEBUG
+    com.netflix.discovery: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,routes
+  endpoint:
+    health:
+      show-details: always
